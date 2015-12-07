@@ -6,6 +6,7 @@ import re
 from flask import Flask, jsonify, request
 import os
 import json
+import subprocess
 
 app = Flask(__name__)
 
@@ -36,11 +37,18 @@ def git_commit():
     # Obtenemos respuesta del commit dde GIT
     git_json = json.loads(request.data)
     # Obtenemos Repositorio
-    repo = git_json['repository']['full_name']
+    repo = git_json['repository']['name']
     # Obtenemos Branch ("ref":"refs/heads/devel")
     branch = git_json['ref'].split('/')[2]
     # Obtenemos version del Docker si no se envia, se asume version en deploy
     docker = git_json['head_commit']['message'].split('->')[1]
+    # Chequeamos las ramas
+    if branch == docker.split('_')[0]:
+        containers = subprocess.check_output("docker ps | awk '{print $2}' | grep -v ID", shell=True).strip('\n').split('\n')
+        # Chequeamos si la version de docker se esta ejecutando
+        if "egob/" + repo + ":" + docker in containers:
+            print "egob/" + repo + ":" + docker
+    
     return "True" 
 
 # Inicializamos un servidor web en el puerto 80 (puerto por defecto 5000)
