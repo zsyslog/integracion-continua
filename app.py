@@ -32,7 +32,7 @@ def git_commit():
     Summary: Se recibe el JSON de GitHub cuando se hace commit
     Examples: POST HTTP/1.1 { "json":"json"}
     Attributes:
-    Returns: 
+    Returns:
     '''
     # Obtenemos respuesta del commit dde GIT
     git_json = json.loads(request.data)
@@ -42,14 +42,16 @@ def git_commit():
     branch = git_json['ref'].split('/')[2]
     # Obtenemos version del Docker si no se envia, se asume version en deploy
     docker = git_json['head_commit']['message'].split('->')[1]
-    # Chequeamos las ramas
-    if branch == docker.split('_')[0]:
-        containers = subprocess.check_output("docker ps | awk '{print $2}' | grep -v ID", shell=True).strip('\n').split('\n')
-        # Chequeamos si la version de docker se esta ejecutando
-        if "egob/" + repo + ":" + docker in containers:
-            print "egob/" + repo + ":" + docker
-    
-    return "True" 
+    # Chequeamos los containers del sistema
+    containers = subprocess.check_output('./names_docker.sh', shell=True).strip('\n').split('\n')
+    # Chequeamos si hay un container del repo
+    if repo + "_" + branch in containers:
+        print "llegue"
+        # Chequeamos si se esta ejecutando la version correspondiente
+        if docker == subprocess.check_output("docker ps -a | grep " + repo + "_" + branch + " | grep -v IMAGE | awk '{print $2}'" ,shell=True).strip('\n'):
+            print "true"
+
+    return "True"
 
 # Inicializamos un servidor web en el puerto 80 (puerto por defecto 5000)
 if __name__ == '__main__':
