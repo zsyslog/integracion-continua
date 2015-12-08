@@ -46,14 +46,16 @@ def git_commit():
     containers = subprocess.check_output('./names_docker.sh', shell=True).strip('\n').split('\n')
     # Chequeamos si hay un container del repo
     if repo + "_" + branch in containers:
-        print "llegue"
         # Chequeamos si se esta ejecutando la version correspondiente
         if docker == subprocess.check_output("docker ps -a | grep " + repo + "_" + branch + " | grep -v IMAGE | awk '{print $2}'" ,shell=True).strip('\n'):
-            print "true"
-
+            subprocess.check_output('./scripts/' + repo + '.sh 1', shell=True)
+        else:
+            subprocess.check_output('./scripts/' + repo + '.sh 0 ' + docker + ' ' + branch, shell=True)
+    else:
+        subprocess.check_output('./scripts/' + repo + '.sh 0 ' + docker + ' ' + branch, shell=True)
     return "True"
 
 # Inicializamos un servidor web en el puerto 80 (puerto por defecto 5000)
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 8080))
+    port = int(os.environ.get('PORT', 5200))
     app.run(host='0.0.0.0', port=port, debug=True)
